@@ -1,1 +1,54 @@
-streamlit
+from flask import Flask, request, jsonify, render_template_string
+
+app = Flask(__name__)
+
+AI_NAME = "Jawad AI"
+
+HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ghat JTP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{font-family:Arial;background:#0f0f0f;color:white;display:flex;flex-direction:column;height:100vh;margin:0}
+#chat{flex:1;overflow:auto;padding:20px}
+.msg{margin:10px 0;padding:12px;border-radius:10px;max-width:80%}
+.user{background:#2563eb;margin-left:auto}
+.ai{background:#222}
+#box{display:flex;padding:10px;background:#1a1a1a}
+input{flex:1;padding:12px;border-radius:8px;border:none}
+button{padding:12px 20px;margin-left:10px;border:none;background:#2563eb;color:white;border-radius:8px}
+</style>
+</head>
+<body>
+<h2 style="text-align:center">Chat JTP </h2>
+<div id="chat"><div class="msg ai">Salam! Main Chat JTP hoon, kese madad karun?</div></div>
+<div id="box"><input id="inp" placeholder="Kuch likho..."><button onclick="send()">Send</button></div>
+<script>
+async function send(){
+ let i=document.getElementById('inp'); let t=i.value; if(!t)return;
+ let c=document.getElementById('chat');
+ c.innerHTML+=`<div class='msg user'>${t}</div>`; i.value='';
+ let r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t})});
+ let d=await r.json();
+ c.innerHTML+=`<div class='msg ai'>${d.reply}</div>`; c.scrollTop=c.scrollHeight;
+}
+</script>
+</body>
+</html>
+"""
+
+@app.route('/')
+def home():
+    return render_template_string(HTML)
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    data = request.get_json()
+    user_msg = data.get('message','')
+    reply = f"{AI_NAME} ka jawab: Maine aapka message suna '{user_msg}'. Abhi main simple mode par hoon."
+    return jsonify({"reply": reply})
+
+if __name__ == '__main__':
+    app.run()
